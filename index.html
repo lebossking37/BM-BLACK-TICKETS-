@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#101010"><title>BM BLACK • Billetterie</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+<style>
+:root{color-scheme:dark;--bg:#101010;--panel:#1b1b1b;--line:#333;--gold:#d9b45b;--muted:#aaa}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:#f7f7f7;font:16px/1.45 system-ui,-apple-system,Segoe UI,sans-serif}
+header{padding:24px 18px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:12px}
+.brand{font-weight:900;letter-spacing:.12em;font-size:20px}.brand span{color:var(--gold)}
+main{max-width:980px;margin:auto;padding:22px 16px 60px}.hero{padding:25px 22px;background:linear-gradient(130deg,#282116,#171717 60%);border:1px solid #51452a;border-radius:18px;margin-bottom:20px}
+.eyebrow{color:var(--gold);font-size:12px;font-weight:800;letter-spacing:.15em;text-transform:uppercase}h1{font-size:clamp(28px,6vw,44px);line-height:1.08;margin:10px 0}h2{font-size:20px;margin:0 0 16px}.muted{color:var(--muted)}
+.tabs{display:flex;gap:8px;margin:18px 0;flex-wrap:wrap}.tab,button{border:1px solid var(--line);background:#252525;color:#fff;border-radius:10px;padding:12px 15px;font:inherit;font-weight:700;cursor:pointer}.tab[aria-selected=true],button.primary{background:var(--gold);color:#17130a;border-color:var(--gold)}button:disabled{opacity:.5;cursor:not-allowed}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:20px;margin-bottom:18px}
+label{display:block;color:#ddd;font-size:14px;margin:12px 0 6px}input,select{width:100%;padding:13px;border-radius:9px;border:1px solid #454545;background:#101010;color:white;font:inherit}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px}.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
+.ticket{display:grid;grid-template-columns:1fr auto;gap:14px;align-items:center;border:1px dashed #5a4a2b;background:#141414;border-radius:12px;padding:14px;margin-top:12px}.ticket h3{margin:0 0 5px}.ticket small{color:var(--muted);word-break:break-all}.qr{background:#fff;padding:7px;border-radius:8px;min-width:96px;min-height:96px}.status{display:inline-block;padding:4px 9px;border-radius:99px;font-size:12px;font-weight:800;background:#263a2b;color:#a7e5b4}.status.used{background:#482929;color:#ffb0b0}.hidden{display:none!important}.notice{border-left:3px solid var(--gold);padding:10px 12px;background:#282318;color:#e7d8b4;font-size:13px;margin-top:14px}#reader{max-width:500px;margin:14px auto}footer{text-align:center;color:#777;padding:24px;font-size:12px}
+</style></head>
+<body>
+<header><div class="brand">BM <span>BLACK</span></div><div class="muted">BILLETTERIE • TEST</div></header>
+<main>
+<section class="hero"><div class="eyebrow">Événement officiel</div><h1>BM BLACK<br>Billetterie</h1><p class="muted">Crée un billet, affiche son QR code et teste son contrôle.</p></section>
+<div class="tabs" role="tablist"><button class="tab" aria-selected="true" data-tab="create">Créer un billet</button><button class="tab" aria-selected="false" data-tab="tickets">Mes billets</button><button class="tab" aria-selected="false" data-tab="check">Contrôler un billet</button></div>
+<section id="create" class="panel">
+<h2>Créer un billet</h2>
+<div class="grid"><div><label for="buyer">Nom du participant</label><input id="buyer" placeholder="Ex. : Awa Koné" autocomplete="name"></div><div><label for="type">Catégorie</label><select id="type"><option>Standard</option><option>VIP</option><option>VVIP</option></select></div></div>
+<div class="actions"><button class="primary" id="createBtn">Générer le billet et le QR code</button></div>
+<div id="created" class="hidden"></div>
+<div class="notice">Prototype de démonstration : les données restent dans ce navigateur. Pour la billetterie réelle, il faudra connecter une base de données et une validation serveur afin d’empêcher la copie ou la réutilisation d’un billet.</div>
+</section>
+<section id="tickets" class="panel hidden"><h2>Billets enregistrés sur cet appareil</h2><div id="ticketList" class="muted">Aucun billet pour le moment.</div></section>
+<section id="check" class="panel hidden"><h2>Contrôle d’entrée</h2><p class="muted">Scanne le QR code ou saisis son identifiant.</p><div id="reader"></div><div class="actions"><button id="scanBtn" class="primary">Démarrer le scanner</button><button id="stopBtn" disabled>Arrêter</button></div><label for="manualId">Identifiant du billet</label><input id="manualId" placeholder="BM-…"><div class="actions"><button id="verifyBtn">Vérifier le billet</button></div><div id="result" aria-live="polite"></div></section>
+</main><footer>BM BLACK • Démonstration locale</footer>
+<script>
+const KEY='bmblack-demo-tickets-v1';let scanner=null;
+const read=()=>{try{return JSON.parse(localStorage.getItem(KEY)||'[]')}catch{return []}};
+const save=a=>localStorage.setItem(KEY,JSON.stringify(a));
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function switchTab(name){document.querySelectorAll('.tab').forEach(b=>b.setAttribute('aria-selected',String(b.dataset.tab===name)));['create','tickets','check'].forEach(id=>document.getElementById(id).classList.toggle('hidden',id!==name));if(name!=='check')stopScan();if(name==='tickets')renderTickets();}
+document.querySelectorAll('.tab').forEach(b=>b.addEventListener('click',()=>switchTab(b.dataset.tab)));
+function qr(target,value){target.innerHTML='';if(window.QRCode)new QRCode(target,{text:value,width:100,height:100,correctLevel:QRCode.CorrectLevel.M});else target.textContent='QR indisponible';}
+function ticketMarkup(t){return '<article class="ticket"><div><h3>'+esc(t.name)+'</h3><div>'+esc(t.type)+' • <span class="status '+(t.used?'used':'')+'">'+(t.used?'Déjà utilisé':'Valide')+'</span></div><small>'+esc(t.id)+'<br>'+new Date(t.created).toLocaleString('fr-FR')+'</small></div><div class="qr" id="qr-'+esc(t.id)+'"></div></article>';}
+function renderTickets(){const list=document.getElementById('ticketList'),all=read();list.innerHTML=all.length?all.slice().reverse().map(ticketMarkup).join(''):'Aucun billet pour le moment.';all.forEach(t=>{const el=document.getElementById('qr-'+t.id);if(el)qr(el,t.id);});}
+document.getElementById('createBtn').addEventListener('click',()=>{const name=document.getElementById('buyer').value.trim();if(!name){alert('Saisis le nom du participant.');return;}const t={id:'BM-'+crypto.randomUUID().toUpperCase(),name,type:document.getElementById('type').value,created:new Date().toISOString(),used:false};const all=read();all.push(t);save(all);const box=document.getElementById('created');box.classList.remove('hidden');box.innerHTML='<h3>Billet créé</h3>'+ticketMarkup(t)+'<div class="actions"><button id="printBtn">Imprimer / enregistrer en PDF</button></div>';qr(document.getElementById('qr-'+t.id),t.id);document.getElementById('printBtn').onclick=()=>window.print();document.getElementById('buyer').value='';});
+function verify(raw){const id=String(raw||'').trim();const all=read(),t=all.find(x=>x.id===id),out=document.getElementById('result');if(!t){out.innerHTML='<p class="status used">Billet introuvable sur cet appareil</p>';return;}if(t.used){out.innerHTML='<p class="status used">REFUSÉ — billet déjà utilisé</p><p>'+esc(t.name)+' • '+esc(t.type)+'</p>';return;}t.used=true;save(all);out.innerHTML='<p class="status">ACCEPTÉ — billet validé</p><p>'+esc(t.name)+' • '+esc(t.type)+'</p><small>'+esc(t.id)+'</small>';renderTickets();}
+document.getElementById('verifyBtn').addEventListener('click',()=>verify(document.getElementById('manualId').value));
+async function startScan(){if(!window.Html5Qrcode){alert('Le module de scan ne s’est pas chargé. Utilise la saisie manuelle.');return;}try{scanner=new Html5Qrcode('reader');await scanner.start({facingMode:'environment'},{fps:10,qrbox:{width:230,height:230}},text=>{document.getElementById('manualId').value=text;stopScan();verify(text);},()=>{});document.getElementById('scanBtn').disabled=true;document.getElementById('stopBtn').disabled=false;}catch(e){alert('Impossible d’ouvrir la caméra. Autorise son accès et utilise HTTPS, ou saisis le code manuellement.');}}
+async function stopScan(){if(scanner){try{if(scanner.isScanning)await scanner.stop();await scanner.clear();}catch{}scanner=null;}const s=document.getElementById('scanBtn'),b=document.getElementById('stopBtn');if(s)s.disabled=false;if(b)b.disabled=true;}
+document.getElementById('scanBtn').addEventListener('click',startScan);document.getElementById('stopBtn').addEventListener('click',stopScan);
+renderTickets();
+</script></body></html>

@@ -55,7 +55,8 @@ button{border:1px solid var(--line);background:#252525;color:#fff;border-radius:
 <div><label for="quantity">Quantité (1 à 1 000)</label><input id="quantity" type="number" min="1" max="1000" value="50"></div></div>
 <div class="notice">Chaque billet est créé dans la base centrale avec un identifiant QR unique. Seul un administrateur peut générer des billets. Les VVIP et invitations n'ont aucun prix imprimé.</div>
 <div class="actions"><button class="primary" id="generateBtn">Générer les QR codes</button><button id="printBatchBtn" disabled>Imprimer le dernier lot / PDF</button></div><div id="batchInfo" class="muted" aria-live="polite"></div>
-<div class="stats"><div class="stat"><b id="totalCount">—</b><span class="muted">Billets créés</span></div><div class="stat"><b id="usedCount">—</b><span class="muted">Déjà contrôlés</span></div><div class="stat"><b id="remainingCount">—</b><span class="muted">Disponibles</span></div></div>\n<h2 style="margin-top:22px">Historique des lots</h2><div id="batchList" class="muted">Chargement des lots…</div>
+<div class="stats"><div class="stat"><b id="totalCount">—</b><span class="muted">Billets créés</span></div><div class="stat"><b id="usedCount">—</b><span class="muted">Déjà contrôlés</span></div><div class="stat"><b id="remainingCount">—</b><span class="muted">Disponibles</span></div></div>
+<h2 style="margin-top:22px">Historique des lots</h2><div id="batchList" class="muted">Chargement des lots…</div>
 </section>
 <section id="tickets" class="panel hidden"><h2>Billets enregistrés</h2><p class="muted">Derniers billets de l'événement, chargés depuis Supabase.</p><div id="ticketList">Chargement…</div></section>
 <section id="check" class="panel hidden"><h2>Contrôle à l'entrée</h2><p class="muted">Scanne le QR ou saisis son code QR. La validation est immédiate et partagée entre tous les téléphones.</p>

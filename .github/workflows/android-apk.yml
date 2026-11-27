@@ -45,12 +45,12 @@ jobs:
           s = p.read_text()
           marker = '<manifest xmlns:android="http://schemas.android.com/apk/res/android">'
           if 'android.permission.CAMERA' not in s:
-              s = s.replace(marker, marker + '\\n    <uses-permission android:name="android.permission.CAMERA" />', 1)
+              s = s.replace(marker, marker + '\n    <uses-permission android:name="android.permission.CAMERA" />', 1)
           p.write_text(s)
           q = Path("android/app/src/main/res/values/strings.xml")
           t = q.read_text()
           import re
-          t = re.sub(r'(<string name="app_name">).*?(</string>)', r'\\1BM BLACK Billetterie\\2', t, count=1)
+          t = re.sub(r'(<string name="app_name">).*?(</string>)', r'\1BM BLACK Billetterie\2', t, count=1)
           q.write_text(t)
           PY
       - name: Compiler APK

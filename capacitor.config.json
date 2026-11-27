@@ -1,0 +1,6 @@
+{
+  "appId": "ci.bmblack.billetterie",
+  "appName": "BM BLACK Billetterie",
+  "webDir": "www",
+  "bundledWebRuntime": false
+}

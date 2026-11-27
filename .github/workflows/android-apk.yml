@@ -48,7 +48,7 @@ jobs:
               raise SystemExit("MainActivity.java introuvable")
           activity = files[0]
           source = activity.read_text()
-          match = re.search(r'^package ([\\w.]+);', source, re.M)
+          match = re.search(r'^package ([A-Za-z0-9_.]+);', source, re.M)
           if not match:
               raise SystemExit("Package Android introuvable")
           package = match.group(1)

@@ -1,0 +1,77 @@
+name: Construire APK BM BLACK
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'index.html'
+      - 'assets/**'
+      - 'package.json'
+      - 'capacitor.config.json'
+      - '.github/workflows/android-apk.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  build-apk:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Récupérer le code
+        uses: actions/checkout@v4
+      - name: Installer Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Installer Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Installer Capacitor
+        run: npm install
+      - name: Préparer les fichiers de l'application
+        run: |
+          mkdir -p www
+          cp index.html www/index.html
+          cp -R assets www/assets
+      - name: Générer le projet Android
+        run: npx cap add android
+      - name: Autoriser le scan par caméra
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path("android/app/src/main/AndroidManifest.xml")
+          s = p.read_text()
+          marker = '<manifest xmlns:android="http://schemas.android.com/apk/res/android">'
+          if 'android.permission.CAMERA' not in s:
+              s = s.replace(marker, marker + '\\n    <uses-permission android:name="android.permission.CAMERA" />', 1)
+          p.write_text(s)
+          q = Path("android/app/src/main/res/values/strings.xml")
+          t = q.read_text()
+          import re
+          t = re.sub(r'(<string name="app_name">).*?(</string>)', r'\\1BM BLACK Billetterie\\2', t, count=1)
+          q.write_text(t)
+          PY
+      - name: Compiler APK
+        run: |
+          cd android
+          chmod +x gradlew
+          ./gradlew assembleDebug
+      - name: Publier l'APK
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: apk-${{ github.run_number }}
+          name: BM BLACK Billetterie APK ${{ github.run_number }}
+          prerelease: true
+          generate_release_notes: false
+          body: APK Android de test BM BLACK Billetterie. Installe le fichier APK sur un téléphone Android.
+          files: android/app/build/outputs/apk/debug/app-debug.apk
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Conserver aussi l'APK comme artefact
+        uses: actions/upload-artifact@v4
+        with:
+          name: BM-BLACK-Billetterie-APK
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+          retention-days: 30

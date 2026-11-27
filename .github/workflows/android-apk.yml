@@ -48,8 +48,8 @@ jobs:
           for folder, size in sizes.items():
               target = Path("android/app/src/main/res") / folder
               target.mkdir(parents=True, exist_ok=True)
-              subprocess.run(["convert", "-background", "none", str(source), "-resize", f"{size}x{size}", str(target / "ic_launcher.png")], check=True)
-              subprocess.run(["convert", "-background", "none", str(source), "-resize", f"{size}x{size}", str(target / "ic_launcher_round.png")], check=True)
+              subprocess.run(["convert", "-background", "none", str(source), "-thumbnail", f"{size}x{size}^", "-gravity", "center", "-extent", f"{size}x{size}", str(target / "ic_launcher.png")], check=True)
+              subprocess.run(["convert", "-background", "none", str(source), "-thumbnail", f"{size}x{size}^", "-gravity", "center", "-extent", f"{size}x{size}", str(target / "ic_launcher_round.png")], check=True)
           PY
       - name: Ajouter le service natif d'impression Android
         run: |

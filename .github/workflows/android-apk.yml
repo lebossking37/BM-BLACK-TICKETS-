@@ -37,6 +37,20 @@ jobs:
           cp -R assets www/assets
       - name: Générer le projet Android
         run: npx cap add android
+      - name: Créer l'icône premium BM BLACK
+        run: |
+          sudo apt-get update && sudo apt-get install -y imagemagick
+          python3 - <<'PY'
+          from pathlib import Path
+          import subprocess
+          source = Path("assets/app-icon.svg")
+          sizes = {"mipmap-mdpi":48,"mipmap-hdpi":72,"mipmap-xhdpi":96,"mipmap-xxhdpi":144,"mipmap-xxxhdpi":192}
+          for folder, size in sizes.items():
+              target = Path("android/app/src/main/res") / folder
+              target.mkdir(parents=True, exist_ok=True)
+              subprocess.run(["convert", "-background", "none", str(source), "-resize", f"{size}x{size}", str(target / "ic_launcher.png")], check=True)
+              subprocess.run(["convert", "-background", "none", str(source), "-resize", f"{size}x{size}", str(target / "ic_launcher_round.png")], check=True)
+          PY
       - name: Ajouter le service natif d'impression Android
         run: |
           python3 - <<'PY'
@@ -100,7 +114,7 @@ jobs:
           q = Path("android/app/src/main/res/values/strings.xml")
           t = q.read_text()
           import re
-          t = re.sub(r'(<string name="app_name">).*?(</string>)', r'\1BM BLACK Billetterie\2', t, count=1)
+          t = re.sub(r'(<string name="app_name">).*?(</string>)', r'\1BM BLACK\2', t, count=1)
           q.write_text(t)
           PY
       - name: Compiler APK
@@ -112,10 +126,10 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: apk-${{ github.run_number }}
-          name: BM BLACK Billetterie APK ${{ github.run_number }}
+          name: BM BLACK APK ${{ github.run_number }}
           prerelease: true
           generate_release_notes: false
-          body: APK Android de test BM BLACK Billetterie. Installe le fichier APK sur un téléphone Android.
+          body: APK Android de test BM BLACK. Installe le fichier APK sur un téléphone Android.
           files: android/app/build/outputs/apk/debug/app-debug.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -48,53 +48,44 @@ jobs:
               raise SystemExit("MainActivity.java introuvable")
           activity = files[0]
           source = activity.read_text()
-          match = re.search(r'^package ([\w.]+);', source, re.M)
+          match = re.search(r'^package ([\\w.]+);', source, re.M)
           if not match:
               raise SystemExit("Package Android introuvable")
           package = match.group(1)
-          plugin = activity.parent / "BMPrintPlugin.java"
-          plugin.write_text("""package %s;
+          activity.write_text("""package %s;
 
           import android.content.Context;
+          import android.os.Bundle;
           import android.print.PrintAttributes;
           import android.print.PrintManager;
+          import android.webkit.JavascriptInterface;
           import android.webkit.WebView;
-          import com.getcapacitor.Plugin;
-          import com.getcapacitor.PluginCall;
-          import com.getcapacitor.PluginMethod;
-          import com.getcapacitor.annotation.CapacitorPlugin;
+          import com.getcapacitor.BridgeActivity;
 
-          @CapacitorPlugin(name = "BMPrint")
-          public class BMPrintPlugin extends Plugin {
-              @PluginMethod
-              public void printWebView(PluginCall call) {
-                  getActivity().runOnUiThread(() -> {
-                      try {
-                          PrintManager manager = (PrintManager) getContext().getSystemService(Context.PRINT_SERVICE);
-                          WebView webView = getBridge().getWebView();
-                          if (manager == null || webView == null) {
-                              call.reject("Service d'impression Android indisponible.");
-                              return;
-                          }
-                          String jobName = call.getString("name", "BM BLACK Billets");
-                          PrintAttributes attributes = new PrintAttributes.Builder()
-                              .setMediaSize(PrintAttributes.MediaSize.ISO_A4)
-                              .setColorMode(PrintAttributes.COLOR_MODE_COLOR)
-                              .setMinMargins(PrintAttributes.Margins.NO_MARGINS)
-                              .build();
-                          manager.print(jobName, webView.createPrintDocumentAdapter(jobName), attributes);
-                          call.resolve();
-                      } catch (Exception error) {
-                          call.reject("Erreur d'impression : " + error.getMessage(), error);
+          public class MainActivity extends BridgeActivity {
+              @Override
+              public void onCreate(Bundle savedInstanceState) {
+                  super.onCreate(savedInstanceState);
+                  getBridge().getWebView().addJavascriptInterface(new Object() {
+                      @JavascriptInterface
+                      public void printWebView(String name) {
+                          runOnUiThread(() -> {
+                              PrintManager manager = (PrintManager) getSystemService(Context.PRINT_SERVICE);
+                              WebView webView = getBridge().getWebView();
+                              if (manager == null || webView == null) return;
+                              String jobName = (name == null || name.isEmpty()) ? "BM BLACK Billets" : name;
+                              PrintAttributes attributes = new PrintAttributes.Builder()
+                                  .setMediaSize(PrintAttributes.MediaSize.ISO_A4)
+                                  .setColorMode(PrintAttributes.COLOR_MODE_COLOR)
+                                  .setMinMargins(PrintAttributes.Margins.NO_MARGINS)
+                                  .build();
+                              manager.print(jobName, webView.createPrintDocumentAdapter(jobName), attributes);
+                          });
                       }
-                  });
+                  }, "BMPrint");
               }
           }
           """ % package)
-          if "BMPrintPlugin.class" not in source:
-              source = source.replace("import com.getcapacitor.BridgeActivity;", "import com.getcapacitor.BridgeActivity;\nimport %s.BMPrintPlugin;" % package)
-              source = source.replace("public class MainActivity extends BridgeActivity {", "public class MainActivity extends BridgeActivity {\n    @Override\n    public void onCreate(android.os.Bundle savedInstanceState) {\n        registerPlugin(BMPrintPlugin.class);\n        super.onCreate(savedInstanceState);\n    }")
-              activity.write_text(source)
           PY
       - name: Autoriser le scan par caméra
         run: |

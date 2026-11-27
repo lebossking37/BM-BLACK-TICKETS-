@@ -1,4 +1,4 @@
-name: Construire APK BM BLACK CONCERT
+name: Construire APK BM BLACK BILLETTERIE
 on:
   workflow_dispatch:
   push:
@@ -37,7 +37,7 @@ jobs:
           cp -R assets www/assets
       - name: Générer le projet Android
         run: npx cap add android
-      - name: Créer l'icône premium BM BLACK CONCERT
+      - name: Créer l'icône premium BM BLACK BILLETTERIE
         run: |
           sudo apt-get update && sudo apt-get install -y imagemagick
           python3 - <<'PY'
@@ -87,7 +87,7 @@ jobs:
                               PrintManager manager = (PrintManager) getSystemService(Context.PRINT_SERVICE);
                               WebView webView = getBridge().getWebView();
                               if (manager == null || webView == null) return;
-                              String jobName = (name == null || name.isEmpty()) ? "BM BLACK CONCERT Billets" : name;
+                              String jobName = (name == null || name.isEmpty()) ? "BM BLACK BILLETTERIE Billets" : name;
                               PrintAttributes attributes = new PrintAttributes.Builder()
                                   .setMediaSize(PrintAttributes.MediaSize.ISO_A4)
                                   .setColorMode(PrintAttributes.COLOR_MODE_COLOR)
@@ -114,7 +114,7 @@ jobs:
           q = Path("android/app/src/main/res/values/strings.xml")
           t = q.read_text()
           import re
-          t = re.sub(r'(<string name="app_name">).*?(</string>)', r'\1BM BLACK CONCERT\2', t, count=1)
+          t = re.sub(r'(<string name="app_name">).*?(</string>)', r'\1BM BLACK BILLETTERIE\2', t, count=1)
           q.write_text(t)
           PY
       - name: Compiler APK
@@ -126,10 +126,10 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: apk-${{ github.run_number }}
-          name: BM BLACK CONCERT APK ${{ github.run_number }}
+          name: BM BLACK BILLETTERIE APK ${{ github.run_number }}
           prerelease: true
           generate_release_notes: false
-          body: APK Android de test BM BLACK CONCERT. Installe le fichier APK sur un téléphone Android.
+          body: APK Android de test BM BLACK BILLETTERIE. Installe le fichier APK sur un téléphone Android.
           files: android/app/build/outputs/apk/debug/app-debug.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
